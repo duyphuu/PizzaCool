@@ -107,6 +107,7 @@ function ProductList() {
             sanPhams.map((sp) => (
               <ProductCard
                 key={sp._id}
+                _id={sp._id}
                 ten={sp.ten}
                 moTa={sp.moTa}
                 gia={sp.gia}

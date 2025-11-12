@@ -1,58 +1,108 @@
 import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { FaGift, FaUserCircle } from "react-icons/fa"; // 🎁 Thêm icon User
+import { useAuth } from "../context/AuthContext"; // <-- 1. Import hook Auth
 
 function Header() {
   // State để quản lý việc hiển thị menu trên mobile
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
-  // Điều chỉnh linkClass để sử dụng màu trắng trên nền tối mới
+  // <-- 2. Lấy trạng thái xác thực
+  const { user, isAuthenticated, logout } = useAuth();
+
+  // Hàm xử lý đăng xuất
+  const handleLogout = () => {
+    logout(); // <-- Gọi hàm logout từ context
+    setIsMenuOpen(false); // Đóng menu mobile
+    navigate("/login"); // Chuyển hướng về trang đăng nhập
+  };
+
+  // Định nghĩa class cho NavLink (giữ nguyên)
   const linkClass = ({ isActive }) =>
-    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+    `block md:inline-block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
       isActive
-        ? "bg-white text-red-600" // Link đang active có nền trắng, chữ đỏ
-        : "text-white hover:bg-white/20" // Link thường có chữ trắng, hover có nền trắng mờ
+        ? "bg-white text-red-600" // Link đang active
+        : "text-white hover:bg-white/20" // Link thường
     }`;
 
+  // Class cho các mục không phải NavLink (như nút Đăng xuất, text Chào)
+  const itemClass =
+    "block md:inline-block px-3 py-2 rounded-md text-sm font-medium text-white transition-colors hover:bg-white/20";
+
+  // Class riêng cho text chào (không cần hover)
+  const welcomeClass =
+    "block md:inline-block px-3 py-2 rounded-md text-sm font-medium text-white";
+
   return (
-    // THAY ĐỔI: Thay bg-white bằng màu gradient đỏ-cam của Footer
-    // và bỏ shadow-sm vì nền đã tối
     <nav className="bg-gradient-to-r from-red-600 to-orange-500 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          {/* Logo và Tên thương hiệu */}
+          {/* Logo */}
           <div className="flex-shrink-0">
-            {/* THAY ĐỔI: Chuyển màu chữ logo thành trắng (text-white) */}
             <Link to="/" className="text-2xl font-bold text-white">
               🍕 PizzaCool
             </Link>
           </div>
 
           {/* Menu cho Desktop */}
-          <div className="hidden md:flex md:items-center md:space-x-4">
+          <div className="hidden md:flex md:items-center md:space-x-1">
             <NavLink to="/" className={linkClass}>
               Trang chủ
             </NavLink>
             <NavLink to="/menu" className={linkClass}>
               Menu
             </NavLink>
+            <NavLink to="/promo" className={linkClass}>
+              <FaGift className="inline text-lg" /> Ưu đãi
+            </NavLink>
             <NavLink to="/cart" className={linkClass}>
               Giỏ hàng
             </NavLink>
-            <NavLink to="/admin/products" className={linkClass}>
-              Quản Lý
-            </NavLink>
+
+            {/* <-- 3. PHẦN HIỂN THỊ ĐỘNG (DESKTOP) --> */}
+            {isAuthenticated ? (
+              // ĐÃ ĐĂNG NHẬP
+              <>
+                {/* Chỉ admin mới thấy 'Quản Lý' */}
+                {user?.vaiTro === "quan_tri" && (
+                  <NavLink to="/admin/products" className={linkClass}>
+                    Quản Lý
+                  </NavLink>
+                )}
+                <span className={welcomeClass}>
+                  <FaUserCircle className="inline -mt-1 mr-1" />
+                  Chào, {user.hoTen}!
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className={`${itemClass} cursor-pointer`}
+                >
+                  Đăng Xuất
+                </button>
+              </>
+            ) : (
+              // CHƯA ĐĂNG NHẬP
+              <>
+                <NavLink to="/login" className={linkClass}>
+                  Đăng Nhập
+                </NavLink>
+                <NavLink to="/register" className={linkClass}>
+                  Đăng Ký
+                </NavLink>
+              </>
+            )}
+            {/* <-- KẾT THÚC PHẦN ĐỘNG --> */}
           </div>
 
           {/* Nút Hamburger cho Mobile */}
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              // THAY ĐỔI: Điều chỉnh màu icon và hover cho phù hợp với nền tối
-              className="p-2 rounded-md text-white hover:bg-white/20 focus:outline-none focus:bg-white/30 focus:ring-2 focus:ring-inset focus:ring-white"
+              className="p-2 rounded-md text-white hover:bg-white/20 focus:outline-none focus:bg-white/30"
               aria-expanded="false"
             >
               <span className="sr-only">Open main menu</span>
-              {/* Icon Hamburger và Dấu X vẫn dùng màu stroke mặc định (currentColor là white) */}
               {!isMenuOpen ? (
                 <svg
                   className="block h-6 w-6"
@@ -60,7 +110,6 @@ function Header() {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
-                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -76,7 +125,6 @@ function Header() {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
-                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -91,14 +139,13 @@ function Header() {
         </div>
       </div>
 
-      {/* Menu cho Mobile (hiển thị khi isMenuOpen là true) */}
+      {/* Menu Mobile (Dropdown) */}
       <div
         className={`md:hidden transition-all duration-300 ease-in-out ${
           isMenuOpen ? "block" : "hidden"
         }`}
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          {/* Link trên Mobile đã được xử lý bằng linkClass */}
           <NavLink
             to="/"
             className={linkClass}
@@ -114,19 +161,65 @@ function Header() {
             Menu
           </NavLink>
           <NavLink
+            to="/promo"
+            className={linkClass}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <FaGift className="inline text-lg" /> Ưu đãi
+          </NavLink>
+          <NavLink
             to="/cart"
             className={linkClass}
             onClick={() => setIsMenuOpen(false)}
           >
             Giỏ hàng
           </NavLink>
-          <NavLink
-            to="/admin/products"
-            className={linkClass}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Quản Lý
-          </NavLink>
+
+          {/* <-- 4. PHẦN HIỂN THỊ ĐỘNG (MOBILE) --> */}
+          {isAuthenticated ? (
+            // ĐÃ ĐĂNG NHẬP
+            <>
+              {/* Chỉ admin mới thấy 'Quản Lý' */}
+              {user?.vaiTro === "quan_tri" && (
+                <NavLink
+                  to="/admin/products"
+                  className={linkClass}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Quản Lý
+                </NavLink>
+              )}
+              <span className={welcomeClass}>
+                <FaUserCircle className="inline -mt-1 mr-1" />
+                Chào, {user.hoTen}!
+              </span>
+              <button
+                onClick={handleLogout} // handleLogout đã bao gồm setIsMenuOpen(false)
+                className={`${itemClass} w-full text-left cursor-pointer`}
+              >
+                Đăng Xuất
+              </button>
+            </>
+          ) : (
+            // CHƯA ĐĂNG NHẬP
+            <>
+              <NavLink
+                to="/login"
+                className={linkClass}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Đăng Nhập
+              </NavLink>
+              <NavLink
+                to="/register"
+                className={linkClass}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Đăng Ký
+              </NavLink>
+            </>
+          )}
+          {/* <-- KẾT THÚC PHẦN ĐỘNG --> */}
         </div>
       </div>
     </nav>

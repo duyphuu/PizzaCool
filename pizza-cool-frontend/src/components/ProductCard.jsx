@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const formatCurrency = (price) => {
   if (typeof price !== "number" && typeof price !== "string") return "N/A";
@@ -13,11 +14,18 @@ const formatCurrency = (price) => {
 
 /**
  * ProductCard chuyên nghiệp kiểu e-commerce.
- * props: ten, moTa, gia, giaCu (optional), hinhAnh, badge (optional), actions (optional)
+ * props: _id, ten, moTa, gia, giaCu (optional), hinhAnh, badge (optional), actions (optional)
  */
-function ProductCard({ ten, moTa, gia, giaCu, hinhAnh, badge, actions }) {
+function ProductCard({ _id, ten, moTa, gia, giaCu, hinhAnh, badge, actions }) {
+  const navigate = useNavigate();
+
+  const handleViewDetail = () => {
+    // Chuyển hướng sang trang chi tiết sản phẩm
+    navigate(`/product/${_id}`);
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transition-transform duration-300 hover:scale-105 hover:shadow-2xl relative">
       {/* Badge (Sale, New...) */}
       {badge && (
         <span className="absolute m-2 px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">
@@ -26,7 +34,10 @@ function ProductCard({ ten, moTa, gia, giaCu, hinhAnh, badge, actions }) {
       )}
 
       {/* Hình ảnh */}
-      <div className="relative w-full h-56 overflow-hidden">
+      <div
+        className="relative w-full h-56 overflow-hidden cursor-pointer"
+        onClick={handleViewDetail}
+      >
         <img
           src={hinhAnh}
           alt={ten}
@@ -41,7 +52,10 @@ function ProductCard({ ten, moTa, gia, giaCu, hinhAnh, badge, actions }) {
 
       {/* Nội dung */}
       <div className="p-4 flex flex-col flex-grow">
-        <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">
+        <h3
+          className="text-lg font-semibold text-gray-800 line-clamp-2 cursor-pointer hover:text-red-600 transition-colors"
+          onClick={handleViewDetail}
+        >
           {ten}
         </h3>
         <p className="text-gray-500 text-sm mt-1 line-clamp-2">{moTa}</p>

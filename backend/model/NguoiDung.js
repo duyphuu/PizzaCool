@@ -7,8 +7,7 @@ const nguoiDungSchema = new mongoose.Schema(
     matKhau: { type: String, required: true },
     soDienThoai: String,
     diaChi: String,
-    email: { type: String, required: true, unique: true },
-    vaiTro: {
+     vaiTro: {
       type: String,
       enum: ["khach_hang", "quan_tri"],
       default: "khach_hang",
